@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Welcome! Please fill out the visitor form.</h1>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul>
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <label for="visitor_name">Visitor Name:</label>
+        <input type="text" id="visitor_name" name="visitor_name" required><br>
+
+        <label for="company_name">Company Name::</label>
+        <input type="text" id="company_name" name="company_name" required><br>
+        
+        <label for="purpose">Purpose of Visit:</label>
+        <input type="text" id="purpose" name="purpose" required><br>
+
+        <label for="department">Select Department:</label>
+        <select id="department" name="department">
+            <option value="1">HR</option>
+            <option value="2">IT</option>
+            <option value="3">Sales</option>
+            <option value="4">Other</option>
+        </select><br>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
