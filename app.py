@@ -12,7 +12,7 @@ app.secret_key = "your_secret_key_here"  # For flash messages
 logging.basicConfig(filename='app.log', level=logging.ERROR)
 
 # Configure upload folder
-UPLOAD_FOLDER = os.path.join(os.getcwd(), "static/uploads")
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static/uploads")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # Ensure the upload directory exists
