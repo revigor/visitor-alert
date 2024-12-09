@@ -1,9 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import requests
+import logging
 
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = "your_secret_key_here"  # For flash messages
+
+# Configure logging
+logging.basicConfig(filename='app.log', level=logging.ERROR)
 
 # SMTP2Go API Parameters
 SMTP2GO_API_URL = "https://api.smtp2go.com/v3/email/send"
@@ -81,10 +85,17 @@ def index():
         email_sent = send_email(department_email, visitor_name, company_name, purpose, department_name)
 
         if email_sent:
-            flash("Notification sent successfully!", "success")
+            return redirect(url_for("success"))
         else:
-            flash("Failed to send notification. Please try again.", "danger")
+            return redirect(url_for("error"))
 
-        return redirect(url_for("index"))
 
     return render_template("index.html")
+
+@app.route("/success")
+def success():
+    return render_template("success.html")
+
+@app.route("/error")
+def error():
+    return render_template("error.html")
