@@ -34,6 +34,11 @@ def send_email(recipient_email, visitor_name, company_name, purpose, department)
             ),
         }
 
+        if not visitor_name or not purpose or not company_name:
+            flash("All fields are required.", "danger")
+            return redirect(url_for("index"))
+
+
         # Send email via SMTP2Go API
         response = requests.post(SMTP2GO_API_URL, json=email_data)
 
@@ -73,7 +78,7 @@ def index():
         department_name = department_names.get(department_choice, "HR")
 
         # Send email
-        email_sent = send_email(department_email, visitor_name, purpose, department_name)
+        email_sent = send_email(department_email, visitor_name, company_name, purpose, department_name)
 
         if email_sent:
             flash("Notification sent successfully!", "success")
