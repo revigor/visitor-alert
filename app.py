@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import requests
 import logging
+import os
+from werkzeug.utils import secure_filename
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -9,11 +11,25 @@ app.secret_key = "your_secret_key_here"  # For flash messages
 # Configure logging
 logging.basicConfig(filename='app.log', level=logging.ERROR)
 
+# Configure upload folder
+UPLOAD_FOLDER = os.path.join(os.getcwd(), "static/uploads")
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+# Ensure the upload directory exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Allowed file extensions
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
 # SMTP2Go API Parameters
 SMTP2GO_API_URL = "https://api.smtp2go.com/v3/email/send"
 SMTP2GO_API_KEY = "api-43E83469CC704967918416A4701A050C"  # Replace with your SMTP2Go API key
 SENDER_EMAIL = 'jorge.prado@royalexpressinc.com'
 DEFAULT_DEPARTMENT_EMAIL = 'hr_TEST_@royalexpressinc.com'  # Default HR email
+
+# Function to check allowed file extensions
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Function to send email
 def send_email(recipient_email, visitor_name, company_name, purpose, department):
@@ -42,7 +58,6 @@ def send_email(recipient_email, visitor_name, company_name, purpose, department)
             flash("All fields are required.", "danger")
             return redirect(url_for("index"))
 
-
         # Send email via SMTP2Go API
         response = requests.post(SMTP2GO_API_URL, json=email_data)
 
@@ -66,6 +81,24 @@ def index():
         purpose = request.form.get("purpose")
         department_choice = request.form.get("department")
 
+        # Handle photo upload securely
+        photo = request.files.get("photo")
+        if photo and allowed_file(photo.filename):
+            try:
+                # Sanitize the filename
+                filename = secure_filename(photo.filename)
+                photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                logging.info(f"Attempting to save photo to: {photo_path}")
+                photo.save(photo_path)
+                logging.info(f"Photo saved to {photo_path}")
+            except Exception as e:
+                logging.error(f"Error saving photo: {e}")
+                flash("Failed to save the photo. Please try again.", "danger")
+                return redirect(url_for("index"))
+        elif photo:
+            flash("Invalid file type. Please upload a PNG, JPG, JPEG, or GIF file.", "danger")
+            return redirect(url_for("index"))
+
         # Map department to email
         department_emails = {
             "1": "hr_TEST_@royalexpressinc.com",
@@ -88,7 +121,6 @@ def index():
             return redirect(url_for("success"))
         else:
             return redirect(url_for("error"))
-
 
     return render_template("index.html")
 

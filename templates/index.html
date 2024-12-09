@@ -7,38 +7,62 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Welcome! Please fill out the visitor form.</h1>
+    <div class="container">
+        <h1>Welcome! Please fill out the visitor form.</h1>
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <ul>
-                {% for category, message in messages %}
-                    <li class="{{ category }}">{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul>
+                    {% for category, message in messages %}
+                        <li class="flash-messages {{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
 
-    <form method="POST">
-        <label for="visitor_name">Visitor Name:</label>
-        <input type="text" id="visitor_name" name="visitor_name" required><br>
+        <form method="POST" enctype="multipart/form-data">
 
-        <label for="company_name">Company Name::</label>
-        <input type="text" id="company_name" name="company_name" required><br>
-        
-        <label for="purpose">Purpose of Visit:</label>
-        <input type="text" id="purpose" name="purpose" required><br>
+            <label for="visitor_name">Visitor Name:</label>
+            <input type="text" id="visitor_name" name="visitor_name" required>
 
-        <label for="department">Select Department:</label>
-        <select id="department" name="department">
-            <option value="1">HR</option>
-            <option value="2">IT</option>
-            <option value="3">Sales</option>
-            <option value="4">Other</option>
-        </select><br>
+            <label for="company_name">Company Name:</label>
+            <input type="text" id="company_name" name="company_name" required>
 
-        <button type="submit">Submit</button>
-    </form>
+            <label for="purpose">Purpose of Visit:</label>
+            <input type="text" id="purpose" name="purpose" required>
+
+            <label for="department">Select Department:</label>
+            <select id="department" name="department">
+                <option value="1">HR</option>
+                <option value="2">IT</option>
+                <option value="3">Sales</option>
+                <option value="4">Other</option>
+            </select>
+
+            <label for="photo">Capture Photo:</label>
+            <input type="file" id="photo" name="photo" accept="image/*" capture="camera" required>
+            <img id="photo-preview" style="display: none; width: 100%; margin-top: 10px;" alt="Photo Preview">
+
+            <script>
+                const photoInput = document.getElementById("photo");
+                const photoPreview = document.getElementById("photo-preview");
+            
+                photoInput.addEventListener("change", () => {
+                    const file = photoInput.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            photoPreview.src = e.target.result;
+                            photoPreview.style.display = "block";
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            </script>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
 </body>
 </html>
