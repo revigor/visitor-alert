@@ -21,7 +21,7 @@
             {% endif %}
         {% endwith %}
 
-        <form method="POST" enctype="multipart/form-data">
+        <form id="visitor-form" method="POST" enctype="multipart/form-data">
 
             <label for="visitor_name">Visitor Name:</label>
             <input type="text" id="visitor_name" name="visitor_name" required>
@@ -41,28 +41,61 @@
             </select>
 
             <label for="photo">Capture Photo:</label>
-            <input type="file" id="photo" name="photo" accept="image/*" capture="camera" required>
-            <img id="photo-preview" style="display: none; width: 100%; margin-top: 10px;" alt="Photo Preview">
+            <input type="file" id="photo" name="photo" accept="image/*" capture="camera" required style="display: none;">
+            <button type="button" id="photo-button">Open Camera</button>
 
-            <script>
-                const photoInput = document.getElementById("photo");
-                const photoPreview = document.getElementById("photo-preview");
-            
-                photoInput.addEventListener("change", () => {
-                    const file = photoInput.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            photoPreview.src = e.target.result;
-                            photoPreview.style.display = "block";
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-            </script>
+            <!-- Confirmation Popup -->
+            <div id="confirmation-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                <p>Does the photo look correct?</p>
+                <img id="popup-photo-preview" style="width: 100%; margin-top: 10px;" alt="Popup Photo Preview">
+                <button type="button" id="confirm-button" style="margin-top: 10px;">Yes</button>
+                <button type="button" id="retake-button" style="margin-top: 10px;">Retake</button>
+            </div>
 
-            <button type="submit">Submit</button>
+            <button id="submit-button" type="submit" style="display: none;">Submit</button>
         </form>
+
+        <script>
+            const photoInput = document.getElementById("photo");
+            const photoButton = document.getElementById("photo-button");
+            const popup = document.getElementById("confirmation-popup");
+            const popupPhotoPreview = document.getElementById("popup-photo-preview");
+            const confirmButton = document.getElementById("confirm-button");
+            const retakeButton = document.getElementById("retake-button");
+            const submitButton = document.getElementById("submit-button");
+            const form = document.getElementById("visitor-form");
+
+            // Open camera when the "Open Camera" button is clicked
+            photoButton.addEventListener("click", () => {
+                photoInput.click();
+            });
+
+            // Show photo preview in the popup
+            photoInput.addEventListener("change", () => {
+                const file = photoInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        popupPhotoPreview.src = e.target.result;
+                        popup.style.display = "block";
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Confirm button: submit the form
+            confirmButton.addEventListener("click", () => {
+                popup.style.display = "none"; // Hide popup
+                submitButton.click(); // Trigger form submission
+            });
+
+            // Retake button: reopen camera
+            retakeButton.addEventListener("click", () => {
+                popup.style.display = "none"; // Hide popup
+                photoInput.value = ""; // Clear file input
+                photoInput.click(); // Reopen the camera
+            });
+        </script>
     </div>
 </body>
 </html>
