@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Driver Management</h1>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul>
+                    {% for category, message in messages %}
+                        <li class="flash-messages {{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Driver Check-In Form -->
+        <form method="POST">
+            <label for="driver_name">Driver Name:</label>
+            <input type="text" id="driver_name" name="driver_name" required>
+
+            <label for="company_name">Company Name:</label>
+            <input type="text" id="company_name" name="company_name" required>
+
+            <label for="truck_license">Truck License Number:</label>
+            <input type="text" id="truck_license" name="truck_license" required>
+
+            <label for="card_id">Assign Card ID:</label>
+            <input type="text" id="card_id" name="card_id" readonly required>
+
+            <button type="button" id="scan-qr-button">Scan QR Code</button>
+
+            <div id="qr-reader" style="width: 100%; margin-top: 10px; display: none;"></div>
+
+            <button type="submit">Check-In Driver</button>
+        </form>
+
+        <!-- Active Drivers List -->
+        <h2>Drivers in Warehouse</h2>
+        {% if drivers %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Card ID</th>
+                        <th>Driver Name</th>
+                        <th>Company</th>
+                        <th>Truck License</th>
+                        <th>Check-In Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for driver in drivers %}
+                        <tr>
+                            <td>{{ driver.card_id }}</td>
+                            <td>{{ driver.name }}</td>
+                            <td>{{ driver.company_name }}</td>
+                            <td>{{ driver.truck_license }}</td>
+                            <td>{{ driver.check_in_time }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('checkout', card_id=driver.card_id) }}" style="display:inline;">
+                                    <button type="submit">Check-Out</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No drivers currently in the warehouse.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        const scanQrButton = document.getElementById("scan-qr-button");
+        const qrReaderDiv = document.getElementById("qr-reader");
+        const cardIdInput = document.getElementById("card_id");
+
+        scanQrButton.addEventListener("click", () => {
+            // Show the QR reader
+            qrReaderDiv.style.display = "block";
+
+            // Initialize the QR Code Scanner
+            const html5QrCode = new Html5Qrcode("qr-reader");
+            html5QrCode.start(
+                { facingMode: "environment" }, // Back camera by default
+                {
+                    fps: 10, // Frames per second
+                    qrbox: 250 // QR code scanning box size
+                },
+                (decodedText) => {
+                    // On successful scan, populate the Card ID field
+                    console.log("Decoded QR Code:", decodedText);
+                    cardIdInput.value = decodedText;
+
+                    // Stop the scanner
+                    html5QrCode.stop().then(() => {
+                        console.log("QR Code scanning stopped.");
+                        qrReaderDiv.style.display = "none"; // Hide the QR reader
+                    }).catch((err) => {
+                        console.error("Error stopping QR Code scanner:", err);
+                    });
+                },
+                (errorMessage) => {
+                    // Log errors during scanning
+                    console.warn("QR Code Scan Error:", errorMessage);
+                }
+            ).catch((err) => {
+                console.error("QR Code Scanner Initialization Error:", err);
+            });
+        });
+    </script>
+</body>
+</html>

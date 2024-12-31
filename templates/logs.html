@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Logs</h1>
+
+        <h2>Visitors</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Company</th>
+                    <th>Purpose</th>
+                    <th>Department</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visitor in visitors %}
+                <tr>
+                    <td>{{ visitor.name }}</td>
+                    <td>{{ visitor.company_name }}</td>
+                    <td>{{ visitor.purpose }}</td>
+                    <td>{{ visitor.department }}</td>
+                    <td>{{ visitor.timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Drivers</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Company</th>
+                    <th>Truck License</th>
+                    <th>Card ID</th>
+                    <th>Check-In</th>
+                    <th>Check-Out</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for driver in drivers %}
+                <tr>
+                    <td>{{ driver.name }}</td>
+                    <td>{{ driver.company_name }}</td>
+                    <td>{{ driver.truck_license }}</td>
+                    <td>{{ driver.card_id }}</td>
+                    <td>{{ driver.check_in_time }}</td>
+                    <td>{{ driver.check_out_time }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
