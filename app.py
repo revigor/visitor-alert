@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-import qrcode
+import requests
 import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
@@ -14,23 +14,21 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///warehouse.db"  # Database fil
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-# Configure logging. Might not be needed anymore.
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static/uploads")
-QR_FOLDER = os.path.join(os.path.dirname(__file__), "static/qrcodes")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(QR_FOLDER, exist_ok=True)
-
 # Configure upload folders
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static/uploads")
 QR_FOLDER = os.path.join(os.path.dirname(__file__), "static/qrcodes")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(QR_FOLDER, exist_ok=True)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+# SMTP2Go API Parameters
+SMTP2GO_API_URL = "https://api.smtp2go.com/v3/email/send"
+SMTP2GO_API_KEY = "api-43E83469CC704967918416A4701A050C"  # Replace with your SMTP2Go API key
+SENDER_EMAIL = 'jorge.prado@royalexpressinc.com'
+DEFAULT_DEPARTMENT_EMAIL = 'hr_TEST_@royalexpressinc.com'  # Default HR email
 
 # Allowed file extensions
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # --- DATABASE MODELS ---
 class Visitor(db.Model):
@@ -42,6 +40,7 @@ class Visitor(db.Model):
     photo_path = db.Column(db.String(200), nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+
 class Driver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -51,10 +50,44 @@ class Driver(db.Model):
     check_in_time = db.Column(db.DateTime, default=datetime.utcnow)
     check_out_time = db.Column(db.DateTime, nullable=True)
 
-# --- ROUTES ---
-# Add routes for visitors, drivers, and logs as described earlier.
+# --- HELPER FUNCTIONS ---
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Visitor Check-In Route (Existing)
+
+def send_email(recipient_email, visitor_name, company_name, purpose, department):
+    try:
+        # Prepare email data
+        email_data = {
+            "api_key": SMTP2GO_API_KEY,
+            "to": [recipient_email],
+            "sender": SENDER_EMAIL,
+            "subject": f"Visitor Notification - {visitor_name}",
+            "text_body": (
+                f"Visitor Name: {visitor_name}\n"
+                f"Company Name: {company_name}\n"
+                f"Purpose: {purpose}\n"
+                f"Department: {department}\n"
+            ),
+            "html_body": (
+                f"<p><strong>Visitor Name:</strong> {visitor_name}</p>"
+                f"<p><strong>Company Name:</strong> {company_name}</p>"
+                f"<p><strong>Purpose:</strong> {purpose}</p>"
+                f"<p><strong>Department:</strong> {department}</p>"
+            ),
+        }
+
+        response = requests.post(SMTP2GO_API_URL, json=email_data)
+
+        # Handle API response
+        return response.status_code == 200
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
+
+# --- ROUTES ---
+
+# Visitor Check-In Route
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -64,15 +97,20 @@ def index():
         department_choice = request.form.get("department")
         photo = request.files.get("photo")
 
+        # Handle photo upload
         photo_path = None
         if photo and allowed_file(photo.filename):
             filename = secure_filename(photo.filename)
             photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             photo.save(photo_path)
 
+        # Map department choice to name and email
+        department_emails = {"1": "hr_TEST_@royalexpressinc.com", "2": "revigor5@gmail.com", "3": "maritza.canales@royalexpressinc.com"}
         department_names = {"1": "HR", "2": "IT", "3": "Sales", "4": "Other"}
+        department_email = department_emails.get(department_choice, DEFAULT_DEPARTMENT_EMAIL)
         department_name = department_names.get(department_choice, "HR")
 
+        # Save visitor to database
         visitor = Visitor(
             name=visitor_name,
             company_name=company_name,
@@ -83,7 +121,13 @@ def index():
         db.session.add(visitor)
         db.session.commit()
 
-        flash(f"Visitor {visitor_name} checked in successfully!", "success")
+        # Send email notification
+        email_sent = send_email(department_email, visitor_name, company_name, purpose, department_name)
+        if email_sent:
+            flash(f"Visitor {visitor_name} checked in successfully!", "success")
+        else:
+            flash("Failed to send notification email. Please check the system settings.", "danger")
+
         return redirect(url_for("index"))
     return render_template("index.html")
 
@@ -96,16 +140,24 @@ def drivers():
         truck_license = request.form.get("truck_license")
         card_id = request.form.get("card_id")
 
-        driver = Driver(
-            name=driver_name,
-            company_name=company_name,
-            truck_license=truck_license,
-            card_id=card_id,
-        )
-        db.session.add(driver)
-        db.session.commit()
+        # Handle driver check-in
+        existing_driver = Driver.query.filter_by(card_id=card_id).first()
+        if existing_driver and existing_driver.check_out_time is None:
+            flash(f"Driver with card ID {card_id} is already checked in.", "danger")
+        else:
+            if existing_driver:
+                existing_driver.check_out_time = None
+            else:
+                driver = Driver(
+                    name=driver_name,
+                    company_name=company_name,
+                    truck_license=truck_license,
+                    card_id=card_id,
+                )
+                db.session.add(driver)
+            db.session.commit()
+            flash(f"Driver {driver_name} checked in successfully!", "success")
 
-        flash(f"Driver {driver_name} checked in successfully!", "success")
         return redirect(url_for("drivers"))
 
     active_drivers = Driver.query.filter(Driver.check_out_time.is_(None)).all()
@@ -116,12 +168,13 @@ def drivers():
 def checkout(card_id):
     driver = Driver.query.filter_by(card_id=card_id).first()
     if driver:
-        driver.check_out_time = datetime.utcnow()
-        db.session.commit()
-        flash(f"Driver with Card ID {card_id} checked out successfully!", "success")
-    else:
-        flash("Invalid Card ID. No driver found.", "danger")
-    return redirect(url_for("drivers"))
+        if driver.check_out_time is None:
+            driver.check_out_time = datetime.utcnow()
+            db.session.commit()
+            return "Driver checked out successfully.", 200
+        else:
+            return "Driver is already checked out.", 400
+    return "Driver not found.", 404
 
 # Logs Route
 @app.route("/logs")
@@ -132,4 +185,5 @@ def logs():
 
 # --- MAIN ---
 if __name__ == "__main__":
+    db.create_all()
     app.run(debug=True)

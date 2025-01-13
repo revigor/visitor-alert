@@ -43,6 +43,9 @@
             <button type="submit">Check-In Driver</button>
         </form>
 
+        <button type="button" id="main-checkout-button">Check Out</button>
+        <div id="main-checkout-qr-reader" style="display: none; margin-top: 10px; width: 100%;"></div>
+        
         <!-- Active Drivers List -->
         <h2>Drivers in Warehouse</h2>
         {% if drivers %}
@@ -66,9 +69,10 @@
                             <td>{{ driver.truck_license }}</td>
                             <td>{{ driver.check_in_time }}</td>
                             <td>
-                                <form method="POST" action="{{ url_for('checkout', card_id=driver.card_id) }}" style="display:inline;">
+                                <form method="POST" action="{{ url_for('checkout', card_id=driver.card_id | safe) }}" style="display:inline;">
                                     <button type="submit">Check-Out</button>
                                 </form>
+                                
                             </td>
                         </tr>
                     {% endfor %}
@@ -118,5 +122,57 @@
             });
         });
     </script>
+
+<script>
+    const mainCheckoutButton = document.getElementById("main-checkout-button");
+    const mainQrReaderDiv = document.getElementById("main-checkout-qr-reader");
+
+    mainCheckoutButton.addEventListener("click", () => {
+        mainQrReaderDiv.style.display = "block";
+
+        const html5QrCode = new Html5Qrcode("main-checkout-qr-reader");
+        html5QrCode.start(
+            { facingMode: "environment" },
+            {
+                fps: 10,
+                qrbox: 250
+            },
+            (decodedText) => {
+                console.log("Decoded QR Code for Check Out:", decodedText);
+
+                // Send the decoded text (card ID) to the server for check out
+                fetch(`/checkout/${encodeURIComponent(decodedText)}`, {
+                    method: "POST"
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Driver checked out successfully!");
+                        location.reload(); // Reload the page to refresh the active drivers list
+                    } else {
+                        alert("Failed to check out driver. Please try again.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Error during check out:", err);
+                    alert("An error occurred. Please try again.");
+                });
+
+                // Stop the QR code scanner
+                html5QrCode.stop().then(() => {
+                    console.log("QR Code scanning stopped.");
+                    mainQrReaderDiv.style.display = "none";
+                }).catch(err => {
+                    console.error("Error stopping QR Code scanner:", err);
+                });
+            },
+            (errorMessage) => {
+                console.warn("QR Code Scan Error:", errorMessage);
+            }
+        ).catch((err) => {
+            console.error("QR Code Scanner Initialization Error:", err);
+        });
+    });
+</script>
+
 </body>
 </html>
