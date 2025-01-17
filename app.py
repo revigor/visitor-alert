@@ -140,26 +140,38 @@ def drivers():
         truck_license = request.form.get("truck_license")
         card_id = request.form.get("card_id")
 
-        # Handle driver check-in
+        # Check if a driver with the same card_id exists
         existing_driver = Driver.query.filter_by(card_id=card_id).first()
-        if existing_driver and existing_driver.check_out_time is None:
-            flash(f"Driver with card ID {card_id} is already checked in.", "danger")
+
+        if existing_driver:
+            # If the driver is already checked in
+            if existing_driver.check_out_time is None:
+                flash(f"Driver with card ID {card_id} is already checked in.", "danger")
+                return redirect(url_for("drivers"))
+
+            # If the driver is checked out, reset check_out_time and update details
+            existing_driver.name = driver_name
+            existing_driver.company_name = company_name
+            existing_driver.truck_license = truck_license
+            existing_driver.check_in_time = datetime.utcnow()
+            existing_driver.check_out_time = None
+            db.session.commit()
+            flash(f"Driver {driver_name} has been checked in again.", "success")
         else:
-            if existing_driver:
-                existing_driver.check_out_time = None
-            else:
-                driver = Driver(
-                    name=driver_name,
-                    company_name=company_name,
-                    truck_license=truck_license,
-                    card_id=card_id,
-                )
-                db.session.add(driver)
+            # If no existing driver with the same card_id, create a new record
+            driver = Driver(
+                name=driver_name,
+                company_name=company_name,
+                truck_license=truck_license,
+                card_id=card_id,
+            )
+            db.session.add(driver)
             db.session.commit()
             flash(f"Driver {driver_name} checked in successfully!", "success")
 
         return redirect(url_for("drivers"))
 
+    # Query active drivers
     active_drivers = Driver.query.filter(Driver.check_out_time.is_(None)).all()
     return render_template("drivers.html", drivers=active_drivers)
 
