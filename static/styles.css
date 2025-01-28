@@ -5,8 +5,8 @@ body {
     padding: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
+    align-items: flex-start; /* Adjust alignment to start at the top */
+    min-height: 100vh; /* Ensure the body takes the full viewport height */
 }
 
 .container {
@@ -17,12 +17,15 @@ body {
     max-width: 500px;
     padding: 20px;
     text-align: center;
+    margin-top: 20px; /* Add margin for spacing from the top */
 }
 
 h1 {
     color: #333;
     margin-bottom: 20px;
     font-size: 24px;
+    text-align: center; /* Ensure the title is centered */
+    word-wrap: break-word; /* Prevent text overflow on smaller screens */
 }
 
 form {
@@ -106,4 +109,39 @@ table th {
 
 .red-button:hover {
     background-color: darkred;
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 10px; /* Add padding for better spacing on smaller screens */
+    }
+
+    h1 {
+        font-size: 20px; /* Reduce title size for smaller screens */
+    }
+
+    .container {
+        padding: 15px; /* Adjust container padding for smaller screens */
+    }
+
+    input, select, button {
+        font-size: 14px; /* Adjust input and button sizes for smaller screens */
+    }
+
+    label {
+        font-size: 14px; /* Adjust label size for smaller screens */
+    }
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-between; /* Space between the buttons */
+    gap: 10px; /* Add spacing between buttons */
+    margin-top: 20px; /* Add some space above the buttons */
+}
+
+button {
+    flex: 1; /* Ensure buttons take equal space */
+    text-align: center; /* Center text inside the buttons */
 }
