@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
+import base64
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -139,14 +140,23 @@ def drivers():
         company_name = request.form.get("company_name")
         truck_license = request.form.get("truck_license")
         card_id = request.form.get("card_id")
-        photo = request.files.get("photo")
+        photo_data = request.form.get("photo_data")  # New field for base64 photo
 
-        # Handle photo upload
+        # Handle base64 photo data
         photo_path = None
-        if photo and allowed_file(photo.filename):
-            filename = secure_filename(photo.filename)
-            photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            photo.save(photo_path)
+        if photo_data:
+            try:
+                # Create a unique filename based on the current timestamp
+                filename = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_driver.jpg"
+                photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
+                # Decode the base64 data and save it as an image
+                with open(photo_path, "wb") as f:
+                    f.write(base64.b64decode(photo_data.split(",")[1]))
+            except Exception as e:
+                flash("Failed to process the photo. Please try again.", "danger")
+                print(f"Error saving photo: {e}")
+                return redirect(url_for("drivers"))
 
         # Check if a driver with the same card_id exists
         existing_driver = Driver.query.filter_by(card_id=card_id).first()
@@ -182,6 +192,7 @@ def drivers():
     # Query active drivers
     active_drivers = Driver.query.filter(Driver.check_out_time.is_(None)).all()
     return render_template("drivers.html", drivers=active_drivers)
+
 
 # Driver Check-Out Route
 @app.route("/checkout/<card_id>", methods=["POST"])

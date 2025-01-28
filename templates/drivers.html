@@ -22,37 +22,40 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Driver Check-In Form -->
-        <form method="POST" enctype="multipart/form-data">
-            <label for="driver_name">Name:</label>
-            <input type="text" id="driver_name" name="driver_name" required>
+<!-- Driver Check-In Form -->
+<form method="POST" enctype="multipart/form-data">
+    <label for="driver_name">Name:</label>
+    <input type="text" id="driver_name" name="driver_name" required>
 
-            <label for="company_name">Company:</label>
-            <input type="text" id="company_name" name="company_name" required>
+    <label for="company_name">Company:</label>
+    <input type="text" id="company_name" name="company_name" required>
 
-            <label for="truck_license">Driver License Number:</label>
-            <input type="text" id="truck_license" name="truck_license" required>
+    <label for="truck_license">Driver License Number:</label>
+    <div class="inline-field">
+        <input type="text" id="truck_license" name="truck_license" required>
+        <button type="button" id="photo-button" class="inline-button">Open Camera</button>
+    </div>
 
-            <label for="card_id">Assign Card ID:</label>
-            <input type="text" id="card_id" name="card_id" readonly required>
+    <label for="card_id">Assign Card ID:</label>
+    <input type="text" id="card_id" name="card_id" readonly required>
 
-            <button type="button" id="scan-qr-button">Scan QR Code</button>
-            <div id="qr-reader" style="width: 100%; margin-top: 10px; display: none;"></div>
+    <button type="button" id="scan-qr-button">Scan QR Code</button>
+    <div id="qr-reader" style="width: 100%; margin-top: 10px; display: none;"></div>
 
-            <label for="photo">Capture Photo:</label>
-            <input type="file" id="photo" name="photo" accept="image/*" capture="camera" required style="display: none;">
-            <button type="button" id="photo-button">Open Camera</button>
+    <!-- Hidden Field to Store Captured Photo Data -->
+    <input type="hidden" id="photo-data" name="photo_data">
 
-            <!-- Confirmation Popup -->
-            <div id="confirmation-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                <p>Does the photo look correct?</p>
-                <img id="popup-photo-preview" style="width: 100%; margin-top: 10px;" alt="Popup Photo Preview">
-                <button type="button" id="confirm-button" style="margin-top: 10px;">Yes</button>
-                <button type="button" id="retake-button" style="margin-top: 10px;">Retake</button>
-            </div>
+    <!-- Confirmation Popup -->
+    <div id="confirmation-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <p>Does the photo look correct?</p>
+        <img id="popup-photo-preview" style="width: 100%; margin-top: 10px;" alt="Popup Photo Preview">
+        <button type="button" id="confirm-button" style="margin-top: 10px;">Yes</button>
+        <button type="button" id="retake-button" style="margin-top: 10px;">Retake</button>
+    </div>
 
-            <button type="submit">Check In Driver</button>
-        </form>
+    <button type="submit">Check In Driver</button>
+</form>
+
 
         <!-- QR Code Check-Out Button -->
         <button type="button" id="check-out-qr-button">Check Out Driver</button>
@@ -171,38 +174,46 @@
         });
 
         // Photo Capture Script
-        const photoInput = document.getElementById("photo");
         const photoButton = document.getElementById("photo-button");
-        const popup = document.getElementById("confirmation-popup");
-        const popupPhotoPreview = document.getElementById("popup-photo-preview");
-        const confirmButton = document.getElementById("confirm-button");
-        const retakeButton = document.getElementById("retake-button");
+    const photoDataInput = document.getElementById("photo-data");
+    const popup = document.getElementById("confirmation-popup");
+    const popupPhotoPreview = document.getElementById("popup-photo-preview");
+    const confirmButton = document.getElementById("confirm-button");
+    const retakeButton = document.getElementById("retake-button");
 
-        photoButton.addEventListener("click", () => {
-            photoInput.click();
-        });
+    // Open Camera
+    photoButton.addEventListener("click", () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.capture = "camera";
 
-        photoInput.addEventListener("change", () => {
-            const file = photoInput.files[0];
+        input.addEventListener("change", () => {
+            const file = input.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    popupPhotoPreview.src = e.target.result;
-                    popup.style.display = "block";
+                    popupPhotoPreview.src = e.target.result; // Show photo in popup
+                    photoDataInput.value = e.target.result; // Save base64 image to hidden input
+                    popup.style.display = "block"; // Show confirmation popup
                 };
-                reader.readAsDataURL(file);
+                reader.readAsDataURL(file); // Convert image to base64
             }
         });
 
-        confirmButton.addEventListener("click", () => {
-            popup.style.display = "none";
-        });
+        input.click(); // Simulate a click to open the camera
+    });
 
-        retakeButton.addEventListener("click", () => {
-            popup.style.display = "none";
-            photoInput.value = "";
-            photoInput.click();
-        });
+    // Confirm Photo
+    confirmButton.addEventListener("click", () => {
+        popup.style.display = "none"; // Hide popup
+    });
+
+    // Retake Photo
+    retakeButton.addEventListener("click", () => {
+        popup.style.display = "none"; // Hide popup
+        photoDataInput.value = ""; // Clear the hidden input
+    });
         
     </script>
 </body>
