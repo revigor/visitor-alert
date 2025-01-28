@@ -139,6 +139,14 @@ def drivers():
         company_name = request.form.get("company_name")
         truck_license = request.form.get("truck_license")
         card_id = request.form.get("card_id")
+        photo = request.files.get("photo")
+
+        # Handle photo upload
+        photo_path = None
+        if photo and allowed_file(photo.filename):
+            filename = secure_filename(photo.filename)
+            photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            photo.save(photo_path)
 
         # Check if a driver with the same card_id exists
         existing_driver = Driver.query.filter_by(card_id=card_id).first()
