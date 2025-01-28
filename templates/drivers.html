@@ -30,16 +30,28 @@
     <label for="company_name">Company:</label>
     <input type="text" id="company_name" name="company_name" required>
 
+    <label for="purpose_of_visit">Purpose of Visit:</label>
+    <select id="purpose_of_visit" name="purpose_of_visit" required>
+        <option value="entrega de productos">Entrega de productos</option>
+        <option value="reunión">Reunión</option>
+        <option value="inspeccion">Inspección</option>
+        <option value="reparacion de cajas">Reparación de cajas</option>
+        <option value="otros">Otros</option>
+    </select>
+
+    <label for="point_of_contact">Point of Contact:</label>
+    <input type="text" id="point_of_contact" name="point_of_contact" required>
+
     <label for="truck_license">Driver License Number:</label>
     <div class="inline-field">
         <input type="text" id="truck_license" name="truck_license" required>
-        <button type="button" id="photo-button" class="inline-button">Open Camera</button>
+        <button type="button" id="photo-button" class="inline-button">Take Photo of Driver License</button>
     </div>
 
     <label for="card_id">Assign Card ID:</label>
     <input type="text" id="card_id" name="card_id" readonly required>
 
-    <button type="button" id="scan-qr-button">Scan QR Code</button>
+    <button type="button" id="scan-qr-button">Check In Driver</button>
     <div id="qr-reader" style="width: 100%; margin-top: 10px; display: none;"></div>
 
     <!-- Hidden Field to Store Captured Photo Data -->
@@ -52,14 +64,13 @@
         <button type="button" id="confirm-button" style="margin-top: 10px;">Yes</button>
         <button type="button" id="retake-button" style="margin-top: 10px;">Retake</button>
     </div>
-
-    <button type="submit">Check In Driver</button>
 </form>
 
 
-        <!-- QR Code Check-Out Button -->
-        <button type="button" id="check-out-qr-button">Check Out Driver</button>
+       <!-- QR Code Check-Out Button -->
+        <button type="button" id="check-out-qr-button" class="red-button">Check Out Driver</button>
         <div id="checkout-qr-reader" style="display: none; margin-top: 10px; width: 100%;"></div>
+
         
         <!-- Active Drivers List -->
         <h2>Drivers in Warehouse</h2>
@@ -98,34 +109,68 @@
     </div>
 
     <script>
-        // QR Code Scanner for Assigning Card ID
-        const scanQrButton = document.getElementById("scan-qr-button");
-        const qrReaderDiv = document.getElementById("qr-reader");
-        const cardIdInput = document.getElementById("card_id");
+    // QR Code Scanner for Assigning Card ID and Auto Check-In
+    const scanQrButton = document.getElementById("scan-qr-button");
+    const qrReaderDiv = document.getElementById("qr-reader");
+    const cardIdInput = document.getElementById("card_id");
 
-        scanQrButton.addEventListener("click", () => {
-            qrReaderDiv.style.display = "block";
+    scanQrButton.addEventListener("click", () => {
+        qrReaderDiv.style.display = "block";
 
-            const html5QrCode = new Html5Qrcode("qr-reader");
-            html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: 250 },
-                (decodedText) => {
-                    cardIdInput.value = decodedText;
+        const html5QrCode = new Html5Qrcode("qr-reader");
+        html5QrCode.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: 250 },
+            (decodedText) => {
+                // Automatically populate the card ID field
+                cardIdInput.value = decodedText;
 
-                    html5QrCode.stop().then(() => {
-                        qrReaderDiv.style.display = "none";
-                    }).catch((err) => {
-                        console.error("Error stopping QR Code scanner:", err);
+                // Send data to the server for automatic check-in
+                const formData = new FormData();
+                formData.append("card_id", decodedText);
+
+                // Include other form fields if needed
+                const driverName = document.getElementById("driver_name").value;
+                const companyName = document.getElementById("company_name").value;
+                const truckLicense = document.getElementById("truck_license").value;
+                const photoData = document.getElementById("photo-data").value;
+
+                formData.append("driver_name", driverName);
+                formData.append("company_name", companyName);
+                formData.append("truck_license", truckLicense);
+                formData.append("photo_data", photoData);
+
+                fetch("/drivers", {
+                    method: "POST",
+                    body: formData,
+                })
+                    .then((response) => {
+                        if (response.ok) {
+                            alert("Driver checked in successfully!");
+                            location.reload(); // Refresh the page to update the list
+                        } else {
+                            alert("Failed to check in driver. Please try again.");
+                        }
+                    })
+                    .catch((err) => {
+                        console.error("Error during check-in:", err);
+                        alert("An error occurred. Please try again.");
                     });
-                },
-                (errorMessage) => {
-                    console.warn("QR Code Scan Error:", errorMessage);
-                }
-            ).catch((err) => {
-                console.error("QR Code Scanner Initialization Error:", err);
-            });
+
+                // Stop the QR code scanner
+                html5QrCode.stop().then(() => {
+                    qrReaderDiv.style.display = "none";
+                }).catch((err) => {
+                    console.error("Error stopping QR Code scanner:", err);
+                });
+            },
+            (errorMessage) => {
+                console.warn("QR Code Scan Error:", errorMessage);
+            }
+        ).catch((err) => {
+            console.error("QR Code Scanner Initialization Error:", err);
         });
+    });
 
         // QR Code Scanner for Driver Check-Out
         const checkOutQrButton = document.getElementById("check-out-qr-button");
