@@ -32,10 +32,12 @@
 
     <label for="purpose_of_visit">Purpose of Visit:</label>
     <select id="purpose_of_visit" name="purpose_of_visit" required>
+        <option value="" disabled selected>Select purpose</option>
         <option value="entrega de productos">Entrega de productos</option>
         <option value="reunión">Reunión</option>
         <option value="inspeccion">Inspección</option>
         <option value="reparacion de cajas">Reparación de cajas</option>
+        <option value="Guardia">Guardia</option>
         <option value="otros">Otros</option>
     </select>
 
@@ -132,11 +134,24 @@
                 const driverName = document.getElementById("driver_name").value;
                 const companyName = document.getElementById("company_name").value;
                 const truckLicense = document.getElementById("truck_license").value;
+                const purposeOfVisit = document.getElementById("purpose_of_visit").value || ""; // Ensure it's not null
+                const pointOfContact = document.getElementById("point_of_contact").value || ""; // Ensure it's not null
                 const photoData = document.getElementById("photo-data").value;
+
+                console.log("Sending Data:", {
+    driver_name: driverName,
+    company_name: companyName,
+    truck_license: truckLicense,
+    purpose_of_visit: purposeOfVisit,
+    point_of_contact: pointOfContact,
+    photo_data: photoData
+});
 
                 formData.append("driver_name", driverName);
                 formData.append("company_name", companyName);
                 formData.append("truck_license", truckLicense);
+                formData.append("purpose_of_visit", purposeOfVisit);
+                formData.append("point_of_contact", pointOfContact);
                 formData.append("photo_data", photoData);
 
                 fetch("/drivers", {

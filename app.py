@@ -41,13 +41,14 @@ class Visitor(db.Model):
     photo_path = db.Column(db.String(200), nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-
 class Driver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     company_name = db.Column(db.String(100), nullable=False)
     truck_license = db.Column(db.String(50), nullable=False)
     card_id = db.Column(db.String(50), unique=True, nullable=False)
+    purpose_of_visit = db.Column(db.String(100), nullable=False)  # New column
+    point_of_contact = db.Column(db.String(100), nullable=False)  # New column
     check_in_time = db.Column(db.DateTime, default=datetime.utcnow)
     check_out_time = db.Column(db.DateTime, nullable=True)
 
@@ -84,6 +85,38 @@ def send_email(recipient_email, visitor_name, company_name, purpose, department)
         return response.status_code == 200
     except Exception as e:
         print(f"Error sending email: {e}")
+        return False
+
+def send_driver_email(recipient_email, driver_name, company_name, purpose_of_visit, point_of_contact):
+    try:
+        # Prepare email data for driver notification
+        email_data = {
+            "api_key": SMTP2GO_API_KEY,
+            "to": [recipient_email],  # Send to security email
+            "sender": SENDER_EMAIL,
+            "subject": f"Driver Check-In Notification - {driver_name}",
+            "text_body": (
+                f"Driver Name: {driver_name}\n"
+                f"Company Name: {company_name}\n"
+                f"Purpose of Visit: {purpose_of_visit}\n"
+                f"Point of Contact: {point_of_contact}\n"
+            ),
+            "html_body": (
+                f"<p><strong>Driver Name:</strong> {driver_name}</p>"
+                f"<p><strong>Company Name:</strong> {company_name}</p>"
+                f"<p><strong>Purpose of Visit:</strong> {purpose_of_visit}</p>"
+                f"<p><strong>Point of Contact:</strong> {point_of_contact}</p>"
+            ),
+        }
+
+        print("Sending email...")  # Debugging
+        response = requests.post(SMTP2GO_API_URL, json=email_data)
+
+        # Handle API response
+        print(f"Email response status: {response.status_code}, Response: {response.text}")  # Debugging
+        return response.status_code == 200
+    except Exception as e:
+        print(f"Error sending driver notification email: {e}")
         return False
 
 # --- ROUTES ---
@@ -140,8 +173,19 @@ def drivers():
         company_name = request.form.get("company_name")
         truck_license = request.form.get("truck_license")
         card_id = request.form.get("card_id")
-        photo_data = request.form.get("photo_data")  # New field for base64 photo
+        purpose_of_visit = request.form.get("purpose_of_visit")  # Get purpose of visit
+        point_of_contact = request.form.get("point_of_contact")  # Get point of contact
+        photo_data = request.form.get("photo_data")  # Get base64 photo data
 
+        print("Received Data:", {  # Debugging output
+            "driver_name": driver_name,
+            "company_name": company_name,
+            "truck_license": truck_license,
+            "purpose_of_visit": purpose_of_visit,
+            "point_of_contact": point_of_contact,
+            "card_id": card_id
+        })
+        
         # Handle base64 photo data
         photo_path = None
         if photo_data:
@@ -171,6 +215,8 @@ def drivers():
             existing_driver.name = driver_name
             existing_driver.company_name = company_name
             existing_driver.truck_license = truck_license
+            existing_driver.purpose_of_visit = purpose_of_visit
+            existing_driver.point_of_contact = point_of_contact
             existing_driver.check_in_time = datetime.utcnow()
             existing_driver.check_out_time = None
             db.session.commit()
@@ -181,18 +227,37 @@ def drivers():
                 name=driver_name,
                 company_name=company_name,
                 truck_license=truck_license,
+                purpose_of_visit=purpose_of_visit,
+                point_of_contact=point_of_contact,
                 card_id=card_id,
             )
             db.session.add(driver)
             db.session.commit()
             flash(f"Driver {driver_name} checked in successfully!", "success")
 
+        # Automatically send email if the purpose of visit is "Guardia"
+        if purpose_of_visit == "Guardia":
+            print("Sending email for Guardia...")  # Debugging
+            recipient_email = "maritza.canales@royalexpressinc.com"
+            email_sent = send_driver_email(
+                recipient_email,
+                driver_name,
+                company_name,
+                purpose_of_visit,
+                point_of_contact,
+            )
+            if email_sent:
+                flash("Notification email sent successfully.", "success")
+                print("✅ Email sent successfully!")  # Debugging line
+            else:
+                flash("Failed to send notification email.", "danger")
+                print("❌ Email failed to send!")  # Debugging line
+
         return redirect(url_for("drivers"))
 
     # Query active drivers
     active_drivers = Driver.query.filter(Driver.check_out_time.is_(None)).all()
     return render_template("drivers.html", drivers=active_drivers)
-
 
 # Driver Check-Out Route
 @app.route("/checkout/<card_id>", methods=["POST"])
