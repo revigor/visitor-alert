@@ -39,7 +39,7 @@ class Visitor(db.Model):
     purpose = db.Column(db.String(200), nullable=False)
     department = db.Column(db.String(50), nullable=False)
     photo_path = db.Column(db.String(200), nullable=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now().replace(microsecond=0))
 
 class Driver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -49,7 +49,7 @@ class Driver(db.Model):
     card_id = db.Column(db.String(50), unique=True, nullable=False)
     purpose_of_visit = db.Column(db.String(100), nullable=False)  # New column
     point_of_contact = db.Column(db.String(100), nullable=False)  # New column
-    check_in_time = db.Column(db.DateTime, default=datetime.utcnow)
+    check_in_time = db.Column(db.DateTime, default=lambda: datetime.now().replace(microsecond=0))
     check_out_time = db.Column(db.DateTime, nullable=True)
 
 # --- HELPER FUNCTIONS ---
@@ -191,7 +191,7 @@ def drivers():
         if photo_data:
             try:
                 # Create a unique filename based on the current timestamp
-                filename = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_driver.jpg"
+                filename = f"{datetime.now().replace(microsecond=0).strftime('%Y%m%d%H%M')}_driver.jpg"
                 photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
                 # Decode the base64 data and save it as an image
@@ -217,7 +217,7 @@ def drivers():
             existing_driver.truck_license = truck_license
             existing_driver.purpose_of_visit = purpose_of_visit
             existing_driver.point_of_contact = point_of_contact
-            existing_driver.check_in_time = datetime.utcnow()
+            existing_driver.check_in_time = datetime.now().replace(microsecond=0)
             existing_driver.check_out_time = None
             db.session.commit()
             flash(f"Driver {driver_name} has been checked in again.", "success")
@@ -265,7 +265,7 @@ def checkout(card_id):
     driver = Driver.query.filter_by(card_id=card_id).first()
     if driver:
         if driver.check_out_time is None:
-            driver.check_out_time = datetime.utcnow()
+            driver.check_out_time = datetime.now().replace(microsecond=0)
             db.session.commit()
             return "Driver checked out successfully.", 200
         else:

@@ -7,6 +7,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
+
+<nav>
+    <a href="/">Visitor Check-In</a>
+    <a href="/drivers">Driver Management</a>
+</nav>
+
 <body>
     <div class="container">
         <h1>Driver Management</h1>
@@ -94,7 +100,7 @@
                             <td>{{ driver.name }}</td>
                             <td>{{ driver.company_name }}</td>
                             <td>{{ driver.truck_license }}</td>
-                            <td>{{ driver.check_in_time }}</td>
+                            <td>{{ driver.check_in_time.strftime('%Y-%m-%d %H:%M') }}</td>
                             <td>
                                 <form method="POST" action="{{ url_for('checkout', card_id=driver.card_id | safe) }}" style="display:inline;">
                                     <button type="submit">Check-Out</button>
