@@ -30,8 +30,8 @@
     <label for="driver_name">Name:</label>
     <input type="text" id="driver_name" name="driver_name" required>
 
-    <label for="company_name">Company:</label>
-    <input type="text" id="company_name" name="company_name" required>
+    <label for="Provider">Provider:</label>
+    <input type="text" id="Provider" name="Provider" required>
 
     <label for="purpose_of_visit">Purpose of Visit:</label>
     <select id="purpose_of_visit" name="purpose_of_visit" required>
@@ -84,7 +84,7 @@
                     <tr>
                         <th>Card ID</th>
                         <th>Name</th>
-                        <th>Company</th>
+                        <th>Provider</th>
                         <th>Driver License</th>
                         <th>Check-In Time</th>
                         <th>Actions</th>
@@ -95,7 +95,7 @@
                         <tr>
                             <td>{{ driver.card_id }}</td>
                             <td>{{ driver.name }}</td>
-                            <td>{{ driver.company_name }}</td>
+                            <td>{{ driver.Provider }}</td>
                             <td>{{ driver.truck_license }}</td>
                             <td>{{ driver.check_in_time.strftime('%Y-%m-%d %H:%M') }}</td>
                             <td>
@@ -135,7 +135,7 @@
 
                 // Include other form fields if needed
                 const driverName = document.getElementById("driver_name").value;
-                const companyName = document.getElementById("company_name").value;
+                const providerName = document.getElementById("Provider").value;
                 const truckLicense = document.getElementById("truck_license").value;
                 const purposeOfVisit = document.getElementById("purpose_of_visit").value || ""; // Ensure it's not null
                 const pointOfContact = document.getElementById("point_of_contact").value || ""; // Ensure it's not null
@@ -143,7 +143,7 @@
 
                 console.log("Sending Data:", {
     driver_name: driverName,
-    company_name: companyName,
+    Provider: providerName,
     truck_license: truckLicense,
     purpose_of_visit: purposeOfVisit,
     point_of_contact: pointOfContact,
@@ -151,7 +151,7 @@
 });
 
                 formData.append("driver_name", driverName);
-                formData.append("company_name", companyName);
+                formData.append("Provider", providerName);
                 formData.append("truck_license", truckLicense);
                 formData.append("purpose_of_visit", purposeOfVisit);
                 formData.append("point_of_contact", pointOfContact);

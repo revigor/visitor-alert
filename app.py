@@ -44,7 +44,7 @@ class Visitor(db.Model):
 class Driver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    company_name = db.Column(db.String(100), nullable=False)
+    provider_name = db.Column(db.String(100), nullable=False)
     truck_license = db.Column(db.String(50), nullable=False)
     card_id = db.Column(db.String(50), unique=True, nullable=False)
     purpose_of_visit = db.Column(db.String(100), nullable=False)  # New column
@@ -87,7 +87,7 @@ def send_email(recipient_email, visitor_name, company_name, purpose, department)
         print(f"Error sending email: {e}")
         return False
 
-def send_driver_email(recipient_email, driver_name, company_name, purpose_of_visit, point_of_contact):
+def send_driver_email(recipient_email, driver_name, provider_name, purpose_of_visit, point_of_contact):
     try:
         # Prepare email data for driver notification
         email_data = {
@@ -97,13 +97,13 @@ def send_driver_email(recipient_email, driver_name, company_name, purpose_of_vis
             "subject": f"Driver Check-In Notification - {driver_name}",
             "text_body": (
                 f"Driver Name: {driver_name}\n"
-                f"Company Name: {company_name}\n"
+                f"Provider Name: {provider_name}\n"
                 f"Purpose of Visit: {purpose_of_visit}\n"
                 f"Point of Contact: {point_of_contact}\n"
             ),
             "html_body": (
                 f"<p><strong>Driver Name:</strong> {driver_name}</p>"
-                f"<p><strong>Company Name:</strong> {company_name}</p>"
+                f"<p><strong>Provider Name:</strong> {provider_name}</p>"
                 f"<p><strong>Purpose of Visit:</strong> {purpose_of_visit}</p>"
                 f"<p><strong>Point of Contact:</strong> {point_of_contact}</p>"
             ),
@@ -170,7 +170,7 @@ def index():
 def drivers():
     if request.method == "POST":
         driver_name = request.form.get("driver_name")
-        company_name = request.form.get("company_name")
+        provider_name = request.form.get("provider_name")
         truck_license = request.form.get("truck_license")
         card_id = request.form.get("card_id")
         purpose_of_visit = request.form.get("purpose_of_visit")  # Get purpose of visit
@@ -179,7 +179,7 @@ def drivers():
 
         print("Received Data:", {  # Debugging output
             "driver_name": driver_name,
-            "company_name": company_name,
+            "provider_name": provider_name,
             "truck_license": truck_license,
             "purpose_of_visit": purpose_of_visit,
             "point_of_contact": point_of_contact,
@@ -213,7 +213,7 @@ def drivers():
 
             # If the driver is checked out, reset check_out_time and update details
             existing_driver.name = driver_name
-            existing_driver.company_name = company_name
+            existing_driver.provider_name = provider_name
             existing_driver.truck_license = truck_license
             existing_driver.purpose_of_visit = purpose_of_visit
             existing_driver.point_of_contact = point_of_contact
@@ -225,7 +225,7 @@ def drivers():
             # If no existing driver with the same card_id, create a new record
             driver = Driver(
                 name=driver_name,
-                company_name=company_name,
+                provider_name=provider_name,
                 truck_license=truck_license,
                 purpose_of_visit=purpose_of_visit,
                 point_of_contact=point_of_contact,
@@ -242,7 +242,7 @@ def drivers():
             email_sent = send_driver_email(
                 recipient_email,
                 driver_name,
-                company_name,
+                provider_name,
                 purpose_of_visit,
                 point_of_contact,
             )
