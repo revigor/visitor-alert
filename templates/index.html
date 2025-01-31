@@ -36,11 +36,17 @@
             <input type="text" id="purpose" name="purpose" required>
 
             <label for="department">Select Department:</label>
-            <select id="department" name="department">
-                <option value="1">HR</option>
-                <option value="2">IT</option>
-                <option value="3">Sales</option>
-                <option value="4">Other</option>
+            <select id="department" name="department" required>
+                <option value="" disabled selected>Select a department</option>
+                <option value="IT">IT</option>
+                <option value="Accounting">Accounting</option>
+                <option value="Fuel">Fuel</option>
+                <option value="Safety">Safety</option>
+            </select>
+            
+            <label for="personnel">Select Point of Contact:</label>
+            <select id="personnel" name="personnel" required>
+                <option value="" disabled selected>Select a person</option>
             </select>
 
             <label for="photo">Capture Photo:</label>
@@ -98,6 +104,32 @@
                 photoInput.value = ""; // Clear file input
                 photoInput.click(); // Reopen the camera
             });
+
+            //Dynamic Dropdown Updates
+            const departmentDropdown = document.getElementById("department");
+    const personnelDropdown = document.getElementById("personnel");
+
+    // Update personnel dropdown based on selected department
+    departmentDropdown.addEventListener("change", () => {
+        const selectedDepartment = departmentDropdown.value;
+
+        // Clear existing options in the personnel dropdown
+        personnelDropdown.innerHTML = '<option value="" disabled selected>Select a person</option>';
+
+        // Fetch personnel data for the selected department
+        fetch(`/get_personnel?department=${encodeURIComponent(selectedDepartment)}`)
+            .then(response => response.json())
+            .then(data => {
+                // Populate the personnel dropdown with the new options
+                data.forEach(person => {
+                    const option = document.createElement("option");
+                    option.value = person;
+                    option.textContent = person;
+                    personnelDropdown.appendChild(option);
+                });
+            })
+            .catch(error => console.error("Error fetching personnel data:", error));
+    });
         </script>
     </div>
 </body>

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import requests
 import os
 from datetime import datetime
@@ -38,6 +38,7 @@ class Visitor(db.Model):
     company_name = db.Column(db.String(100), nullable=False)
     purpose = db.Column(db.String(200), nullable=False)
     department = db.Column(db.String(50), nullable=False)
+    personnel = db.Column(db.String(100), nullable=False)  # New field
     photo_path = db.Column(db.String(200), nullable=True)
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now().replace(microsecond=0))
 
@@ -121,6 +122,17 @@ def send_driver_email(recipient_email, driver_name, provider_name, purpose_of_vi
 
 # --- ROUTES ---
 
+@app.route("/get_personnel", methods=["GET"])
+def get_personnel():
+    department = request.args.get("department")
+    personnel = {
+        "IT": ["Ivan Ramirez", "Carlos Lopez", "Maria Torres"],
+        "Accounting": ["Laura Gonzalez", "Pedro Martinez"],
+        "Fuel": ["Samuel Diaz", "Victor Morales"],
+        "Safety": ["Diana Hernandez", "Monica Ruiz"]
+    }
+    return jsonify(personnel.get(department, []))
+
 # Visitor Check-In Route
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -129,6 +141,7 @@ def index():
         company_name = request.form.get("company_name")
         purpose = request.form.get("purpose")
         department_choice = request.form.get("department")
+        personnel = request.form.get("personnel")  # Get the selected personnel
         photo = request.files.get("photo")
 
         # Handle photo upload
@@ -150,6 +163,7 @@ def index():
             company_name=company_name,
             purpose=purpose,
             department=department_name,
+            personnel=personnel,  # Save personnel
             photo_path=photo_path,
         )
         db.session.add(visitor)
