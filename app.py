@@ -126,10 +126,37 @@ def send_driver_email(recipient_email, driver_name, provider_name, purpose_of_vi
 def get_personnel():
     department = request.args.get("department")
     personnel = {
-        "IT": ["Ivan Ramirez", "Carlos Lopez", "Maria Torres"],
-        "Accounting": ["Laura Gonzalez", "Pedro Martinez"],
-        "Fuel": ["Samuel Diaz", "Victor Morales"],
-        "Safety": ["Diana Hernandez", "Monica Ruiz"]
+        "HR": [
+            {"name": "Alice Johnson", "email": "hr@royalexpressinc.com"}
+        ],
+        "IT": [
+            {"name": "Ivan Ramirez", "email": "ivan.ramirez@royalexpressinc.com"},
+            {"name": "Ivan Ramirez Wo Tickets", "email": "wotickets@royalexpressinc.com"},
+            {"name": "Carlos Lopez", "email": "revigor5@gmail.com"}
+        ],
+        "Accounting": [
+            {"name": "Lesly Espinoza", "email": "carriersmx@royalexpressinc.com"},
+            {"name": "David Mata", "email": "accounting1@royalexpressinc.com"},
+            {"name": "Saul Alcorta", "email": "salcorta@royalexpressinc.com"},
+            {"name": "Karen Maldonado", "email": "kmaldonado@royalexpressinc.com"}
+        ],
+        "Settlements": [
+            {"name": "Edith Ochoa", "email": "edith@royalexpressinc.com"},
+            {"name": "Arleen", "email": "arleen@royalexpressinc.com"}
+        ],
+        "Fuel": [
+            {"name": "Brenda Ceballos", "email": "brendac@royalexpressinc.com"}
+        ],
+        "Safety": [
+            {"name": "Vanesa Uribe", "email": "vanessau@royalexpressinc.com"},
+            {"name": "Mauricio", "email": "safety.recruiter@royalexpressinc.com"},
+            {"name": "Joyce Zavala", "email": "insurance.handler@royalexpressinc.com"},
+            {"name": "Magaly", "email": "safety.clerk@royalexpressinc.com"}
+        ],
+        "Shop": [
+            {"name": "Oscar Garcia", "email": "ogarcia@royalexpressinc.com"},
+            {"name": "Mariam Treviño", "email": "mariamt@royalexpressinc.com"}
+        ]
     }
     return jsonify(personnel.get(department, []))
 
@@ -140,8 +167,8 @@ def index():
         visitor_name = request.form.get("visitor_name")
         company_name = request.form.get("company_name")
         purpose = request.form.get("purpose")
-        department_choice = request.form.get("department")
-        personnel = request.form.get("personnel")  # Get the selected personnel
+        department_name = request.form.get("department")  # Directly from the form
+        point_of_contact_email = request.form.get("personnel")  # This now contains the selected email
         photo = request.files.get("photo")
 
         # Handle photo upload
@@ -151,11 +178,6 @@ def index():
             photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             photo.save(photo_path)
 
-        # Map department choice to name and email
-        department_emails = {"1": "hr_TEST_@royalexpressinc.com", "2": "revigor5@gmail.com", "3": "maritza.canales@royalexpressinc.com"}
-        department_names = {"1": "HR", "2": "IT", "3": "Sales", "4": "Other"}
-        department_email = department_emails.get(department_choice, DEFAULT_DEPARTMENT_EMAIL)
-        department_name = department_names.get(department_choice, "HR")
 
         # Save visitor to database
         visitor = Visitor(
@@ -163,14 +185,20 @@ def index():
             company_name=company_name,
             purpose=purpose,
             department=department_name,
-            personnel=personnel,  # Save personnel
+            personnel=point_of_contact_email,  # Save the email of the point of contact
             photo_path=photo_path,
         )
         db.session.add(visitor)
         db.session.commit()
 
         # Send email notification
-        email_sent = send_email(department_email, visitor_name, company_name, purpose, department_name)
+        email_sent = send_email(
+        recipient_email=point_of_contact_email,  # Send the email to the selected contact
+        visitor_name=visitor_name,
+        company_name=company_name,
+        purpose=purpose,
+        department=department_name
+)
         if email_sent:
             flash(f"Visitor {visitor_name} checked in successfully!", "success")
         else:

@@ -38,10 +38,13 @@
             <label for="department">Select Department:</label>
             <select id="department" name="department" required>
                 <option value="" disabled selected>Select a department</option>
+                <option value="HR">HR</option>
                 <option value="IT">IT</option>
                 <option value="Accounting">Accounting</option>
+                <option value="Settlements">Settlements</option>
                 <option value="Fuel">Fuel</option>
                 <option value="Safety">Safety</option>
+                <option value="Shop">Shop</option>
             </select>
             
             <label for="personnel">Select Point of Contact:</label>
@@ -123,8 +126,8 @@
                 // Populate the personnel dropdown with the new options
                 data.forEach(person => {
                     const option = document.createElement("option");
-                    option.value = person;
-                    option.textContent = person;
+                    option.value = person.email; // Use email as the value
+                    option.textContent = person.name; // Display the name
                     personnelDropdown.appendChild(option);
                 });
             })
