@@ -131,7 +131,7 @@ def get_personnel():
         ],
         "IT": [
             {"name": "Ivan Ramirez", "email": "ivan.ramirez@royalexpressinc.com"},
-            {"name": "Ivan Ramirez Wo Tickets", "email": "wotickets@royalexpressinc.com"},
+            {"name": "IT-Departament", "email": "wotickets@royalexpressinc.com"},
             {"name": "Carlos Lopez", "email": "revigor5@gmail.com"}
         ],
         "Accounting": [
