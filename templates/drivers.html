@@ -95,7 +95,7 @@
                         <tr>
                             <td>{{ driver.card_id }}</td>
                             <td>{{ driver.name }}</td>
-                            <td>{{ driver.Provider }}</td>
+                            <td>{{ driver.provider_name }}</td>
                             <td>{{ driver.truck_license }}</td>
                             <td>{{ driver.check_in_time.strftime('%Y-%m-%d %H:%M') }}</td>
                             <td>
@@ -135,7 +135,7 @@
 
                 // Include other form fields if needed
                 const driverName = document.getElementById("driver_name").value;
-                const providerName = document.getElementById("Provider").value;
+                const providerName = document.getElementById("provider_name").value;
                 const truckLicense = document.getElementById("truck_license").value;
                 const purposeOfVisit = document.getElementById("purpose_of_visit").value || ""; // Ensure it's not null
                 const pointOfContact = document.getElementById("point_of_contact").value || ""; // Ensure it's not null
@@ -143,7 +143,7 @@
 
                 console.log("Sending Data:", {
     driver_name: driverName,
-    Provider: providerName,
+    provider_name: providerName,
     truck_license: truckLicense,
     purpose_of_visit: purposeOfVisit,
     point_of_contact: pointOfContact,
@@ -151,7 +151,7 @@
 });
 
                 formData.append("driver_name", driverName);
-                formData.append("Provider", providerName);
+                formData.append("provider_name", providerName);
                 formData.append("truck_license", truckLicense);
                 formData.append("purpose_of_visit", purposeOfVisit);
                 formData.append("point_of_contact", pointOfContact);
