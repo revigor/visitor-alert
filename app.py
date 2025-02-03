@@ -88,7 +88,7 @@ def send_email(recipient_email, visitor_name, company_name, purpose, department)
         print(f"Error sending email: {e}")
         return False
 
-def send_driver_email(recipient_email, driver_name, provider_name, purpose_of_visit, point_of_contact):
+def send_driver_email(recipient_email, driver_name, provider_name, purpose_of_visit, point_of_contact, check_in_time):
     try:
         # Prepare email data for driver notification
         email_data = {
@@ -101,23 +101,25 @@ def send_driver_email(recipient_email, driver_name, provider_name, purpose_of_vi
                 f"Provider Name: {provider_name}\n"
                 f"Purpose of Visit: {purpose_of_visit}\n"
                 f"Point of Contact: {point_of_contact}\n"
+                f"Check-In Time: {check_in_time}\n"
             ),
             "html_body": (
                 f"<p><strong>Driver Name:</strong> {driver_name}</p>"
                 f"<p><strong>Provider Name:</strong> {provider_name}</p>"
                 f"<p><strong>Purpose of Visit:</strong> {purpose_of_visit}</p>"
                 f"<p><strong>Point of Contact:</strong> {point_of_contact}</p>"
+                f"<p><strong>Check-In Time:</strong> {check_in_time}</p>"
             ),
         }
 
-        print("Sending email...")  # Debugging
+        print("Sending check-in email...")  # Debugging
         response = requests.post(SMTP2GO_API_URL, json=email_data)
 
         # Handle API response
-        print(f"Email response status: {response.status_code}, Response: {response.text}")  # Debugging
+        print(f"Check-in Email Response: {response.status_code}, Response: {response.text}")  # Debugging
         return response.status_code == 200
     except Exception as e:
-        print(f"Error sending driver notification email: {e}")
+        print(f"Error sending driver check-in email: {e}")
         return False
 
 def send_driver_checkout_email(recipient_email, driver_name, provider_name, check_out_time, point_of_contact):
@@ -311,7 +313,7 @@ def drivers():
 
         # Automatically send email if the purpose of visit is "Guardia"
         if purpose_of_visit == "Guardia":
-            print("Sending email for Guardia...")  # Debugging
+            print("Sending check-in email for Guardia...")  # Debugging
             recipient_email = "maritza.canales@royalexpressinc.com"
             email_sent = send_driver_email(
                 recipient_email,
@@ -319,6 +321,7 @@ def drivers():
                 provider_name,
                 purpose_of_visit,
                 point_of_contact,
+                datetime.now().replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")  # Include formatted check-in time
             )
             if email_sent:
                 flash("Notification email sent successfully.", "success")
