@@ -133,14 +133,14 @@ def send_driver_checkout_email(recipient_email, driver_name, provider_name, chec
             "text_body": (
                 f"Driver Name: {driver_name}\n"
                 f"Provider Name: {provider_name}\n"
-                f"Check-Out Time: {check_out_time}\n"
                 f"Point of Contact: {point_of_contact}\n"
+                f"Check-Out Time: {check_out_time}\n"
             ),
             "html_body": (
                 f"<p><strong>Driver Name:</strong> {driver_name}</p>"
                 f"<p><strong>Provider Name:</strong> {provider_name}</p>"
-                f"<p><strong>Check-Out Time:</strong> {check_out_time}</p>"
                 f"<p><strong>Point of Contact:</strong> {point_of_contact}</p>"
+                f"<p><strong>Check-Out Time:</strong> {check_out_time}</p>"
             ),
         }
 
