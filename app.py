@@ -120,6 +120,38 @@ def send_driver_email(recipient_email, driver_name, provider_name, purpose_of_vi
         print(f"Error sending driver notification email: {e}")
         return False
 
+def send_driver_checkout_email(recipient_email, driver_name, provider_name, check_out_time, point_of_contact):
+    try:
+        # Prepare email data for driver check-out notification
+        email_data = {
+            "api_key": SMTP2GO_API_KEY,
+            "to": [recipient_email],  # Send to security email
+            "sender": SENDER_EMAIL,
+            "subject": f"Driver Check-Out Notification - {driver_name}",
+            "text_body": (
+                f"Driver Name: {driver_name}\n"
+                f"Provider Name: {provider_name}\n"
+                f"Check-Out Time: {check_out_time}\n"
+                f"Point of Contact: {point_of_contact}\n"
+            ),
+            "html_body": (
+                f"<p><strong>Driver Name:</strong> {driver_name}</p>"
+                f"<p><strong>Provider Name:</strong> {provider_name}</p>"
+                f"<p><strong>Check-Out Time:</strong> {check_out_time}</p>"
+                f"<p><strong>Point of Contact:</strong> {point_of_contact}</p>"
+            ),
+        }
+
+        print("Sending check-out email...")  # Debugging
+        response = requests.post(SMTP2GO_API_URL, json=email_data)
+
+        # Handle API response
+        print(f"Check-out Email Response: {response.status_code}, Response: {response.text}")  # Debugging
+        return response.status_code == 200
+    except Exception as e:
+        print(f"Error sending driver check-out email: {e}")
+        return False
+
 # --- ROUTES ---
 
 @app.route("/get_personnel", methods=["GET"])
@@ -305,13 +337,33 @@ def drivers():
 @app.route("/checkout/<card_id>", methods=["POST"])
 def checkout(card_id):
     driver = Driver.query.filter_by(card_id=card_id).first()
+    
     if driver:
         if driver.check_out_time is None:
             driver.check_out_time = datetime.now().replace(microsecond=0)
             db.session.commit()
+            flash(f"Driver {driver.name} checked out successfully!", "success")
+
+            # 🚨 Send check-out email if the driver checked in for "Guardia"
+            if driver.purpose_of_visit == "Guardia":
+                print("Sending check-out email for Guardia...")  # Debugging
+                recipient_email = "maritza.canales@royalexpressinc.com"
+                email_sent = send_driver_checkout_email(
+                    recipient_email,
+                    driver.name,
+                    driver.provider_name,
+                    driver.check_out_time.strftime("%Y-%m-%d %H:%M:%S"),  # Format time for email
+                    driver.point_of_contact
+                )
+                if email_sent:
+                    print("✅ Check-out email sent successfully!")  # Debugging line
+                else:
+                    print("❌ Failed to send check-out email!")  # Debugging line
+
             return "Driver checked out successfully.", 200
         else:
             return "Driver is already checked out.", 400
+
     return "Driver not found.", 404
 
 # Logs Route
