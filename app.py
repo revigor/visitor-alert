@@ -97,7 +97,7 @@ def send_driver_email(recipient_email, driver_name, provider_name, purpose_of_vi
             "sender": SENDER_EMAIL,
             "subject": f"Driver Check-In Notification - {driver_name}",
             "text_body": (
-                f"Driver Name: {driver_name}\n"
+                f"Name: {driver_name}\n"
                 f"Provider Name: {provider_name}\n"
                 f"Purpose of Visit: {purpose_of_visit}\n"
                 f"Point of Contact: {point_of_contact}\n"
@@ -131,7 +131,7 @@ def send_driver_checkout_email(recipient_email, driver_name, provider_name, chec
             "sender": SENDER_EMAIL,
             "subject": f"Driver Check-Out Notification - {driver_name}",
             "text_body": (
-                f"Driver Name: {driver_name}\n"
+                f"Name: {driver_name}\n"
                 f"Provider Name: {provider_name}\n"
                 f"Point of Contact: {point_of_contact}\n"
                 f"Check-Out Time: {check_out_time}\n"
