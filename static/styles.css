@@ -192,3 +192,16 @@ nav a:hover {
     color: gray;
     font-weight: bold;
 }
+
+header {
+    text-align: center;  /* Center the logo */
+    margin-bottom: 20px; /* Add space below */
+}
+
+.company-logo {
+    width: 250px;  /* Adjust size */
+    max-width: 100%; /* Ensure responsiveness */
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
