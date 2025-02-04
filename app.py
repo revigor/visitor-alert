@@ -5,10 +5,13 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 import base64
+import pytz
 
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = "your_secret_key_here"  # For flash messages
+
+LOCAL_TZ = pytz.timezone("America/Chicago")
 
 # Configure database
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///warehouse.db"  # Database file
@@ -38,9 +41,11 @@ class Visitor(db.Model):
     company_name = db.Column(db.String(100), nullable=False)
     purpose = db.Column(db.String(200), nullable=False)
     department = db.Column(db.String(50), nullable=False)
-    personnel = db.Column(db.String(100), nullable=False)  # New field
+    personnel = db.Column(db.String(100), nullable=False) 
     photo_path = db.Column(db.String(200), nullable=True)
-    timestamp = db.Column(db.DateTime, default=lambda: datetime.now().replace(microsecond=0))
+    badge_number = db.Column(db.Integer, nullable=True)  # Assigned badge number
+    check_in_time = db.Column(db.DateTime, default=lambda: datetime.now(pytz.utc).astimezone(LOCAL_TZ).replace(microsecond=0))
+    check_out_time = db.Column(db.DateTime, nullable=True)  # Set check_out_time as nullable
 
 class Driver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -154,6 +159,13 @@ def send_driver_checkout_email(recipient_email, driver_name, provider_name, chec
         print(f"Error sending driver check-out email: {e}")
         return False
 
+def get_available_badge():
+    assigned_badges = [visitor.badge_number for visitor in Visitor.query.filter(Visitor.badge_number.isnot(None)).all()]
+    for badge in range(1, 6):  # Checking badges 1-5
+        if badge not in assigned_badges:
+            return badge
+    return None  # No available badge
+
 # --- ROUTES ---
 
 @app.route("/get_personnel", methods=["GET"])
@@ -212,6 +224,11 @@ def index():
             photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             photo.save(photo_path)
 
+         # 🔥 Assign an available badge
+        badge_number = get_available_badge()
+        if badge_number is None:
+            flash("No visitor badges available. Please wait for one to be returned.", "danger")
+            return redirect(url_for("index"))
 
         # Save visitor to database
         visitor = Visitor(
@@ -221,6 +238,9 @@ def index():
             department=department_name,
             personnel=point_of_contact_email,  # Save the email of the point of contact
             photo_path=photo_path,
+            badge_number=badge_number,  # Store assigned badge
+            check_in_time=datetime.now(pytz.utc).astimezone(LOCAL_TZ).replace(microsecond=0),
+            check_out_time=None  # ✅ Ensure this is explicitly set to None
         )
         db.session.add(visitor)
         db.session.commit()
@@ -235,6 +255,7 @@ def index():
 )
         if email_sent:
             flash(f"Visitor {visitor_name} checked in successfully!", "success")
+            flash(f"Assigned Visitor Badge: {badge_number}", "info")  # Show badge assignment
         else:
             flash("Failed to send notification email. Please check the system settings.", "danger")
 
@@ -369,12 +390,35 @@ def checkout(card_id):
 
     return "Driver not found.", 404
 
+@app.route("/visitor_checkout/<int:visitor_id>", methods=["POST"])
+def visitor_checkout(visitor_id):
+    visitor = Visitor.query.get(visitor_id)
+    
+    if visitor:
+        if visitor.check_out_time is None:
+            visitor.check_out_time = datetime.now(pytz.utc).astimezone(LOCAL_TZ).replace(microsecond=0)  # Set check-out time
+            badge_number = visitor.badge_number  # Save the badge number before releasing it
+            visitor.badge_number = None  # Release badge number
+            db.session.commit()
+            flash(f"Visitor {visitor.name} checked out successfully! Badge {badge_number} is now available.", "success")
+        else:
+            flash(f"Visitor {visitor.name} has already checked out.", "info")
+    else:
+        flash("Visitor not found.", "danger")
+
+    return redirect(url_for("visitor_logs"))
+
 # Logs Route
 @app.route("/logs")
 def logs():
     visitors = Visitor.query.all()
     drivers = Driver.query.all()
     return render_template("logs.html", visitors=visitors, drivers=drivers)
+
+@app.route("/visitor_logs")
+def visitor_logs():
+    visitors = Visitor.query.all()
+    return render_template("visitor_logs.html", visitors=visitors)
 
 # --- MAIN ---
 if __name__ == "__main__":

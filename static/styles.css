@@ -172,3 +172,23 @@ nav a:hover {
     background-color: #555;
     border-radius: 5px;
 }
+
+.checkout-button {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.checkout-button:hover {
+    background-color: darkred;
+}
+
+.checked-out {
+    color: gray;
+    font-weight: bold;
+}

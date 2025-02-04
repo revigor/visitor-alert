@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Logs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Visitor Logs</h1>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Company</th>
+                    <th>Purpose</th>
+                    <th>Department</th>
+                    <th>Point of Contact</th>
+                    <th>Badge Number</th>
+                    <th>Check-In Time</th>
+                    <th>Check-Out Time</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visitor in visitors %}
+                <tr>
+                    <td>{{ visitor.name }}</td>
+                    <td>{{ visitor.company_name }}</td>
+                    <td>{{ visitor.purpose }}</td>
+                    <td>{{ visitor.department }}</td>
+                    <td>{{ visitor.personnel }}</td>
+                    <td>{{ visitor.badge_number if visitor.badge_number else 'N/A' }}</td>
+                    <td>{{ visitor.check_in_time }}</td>
+                    <td>{{ visitor.check_out_time if visitor.check_out_time else 'Still Checked In' }}</td>
+                    <td>
+                        {% if not visitor.check_out_time %}
+                            <form method="POST" action="{{ url_for('visitor_checkout', visitor_id=visitor.id) }}" style="display:inline;">
+                                <button type="submit" class="checkout-button">Check Out</button>
+                            </form>
+                        {% else %}
+                            <span class="checked-out">Checked Out</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <a href="/">Back to Visitor Check-In</a>
+    </div>
+</body>
+</html>
