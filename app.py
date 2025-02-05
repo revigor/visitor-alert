@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, session
 import requests
 import os
 from datetime import datetime
@@ -10,6 +10,10 @@ import pytz
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = "your_secret_key_here"  # For flash messages
+
+# Set a simple password for the iPad access
+IPAD_PASSWORD = "royal25"
+ADMIN_PASSWORD = "royal52"
 
 LOCAL_TZ = pytz.timezone("America/Chicago")
 
@@ -209,6 +213,9 @@ def get_personnel():
 # Visitor Check-In Route
 @app.route("/", methods=["GET", "POST"])
 def index():
+    if not session.get("ipad_authenticated"):  # If not logged in, redirect to login page
+        return redirect(url_for("login"))
+
     if request.method == "POST":
         visitor_name = request.form.get("visitor_name")
         company_name = request.form.get("company_name")
@@ -413,6 +420,36 @@ def visitor_checkout(visitor_id):
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        entered_password = request.form.get("password")
+        if entered_password == IPAD_PASSWORD:
+            session["ipad_authenticated"] = True  # Store in session
+            flash("iPad authenticated successfully!", "success")
+            return redirect(url_for("index"))
+        else:
+            flash("Invalid password. Try again.", "danger")
+    return render_template("login.html")  # Create this template for login
+
+@app.route("/admin_login", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "POST":
+        entered_password = request.form.get("password")
+        if entered_password == ADMIN_PASSWORD:
+            session["admin_authenticated"] = True
+            flash("Admin authenticated successfully!", "success")
+            return redirect(url_for("visitor_logs"))
+        else:
+            flash("Invalid password. Try again.", "danger")
+    return render_template("admin_login.html")  # Create this template for admin login
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("You have been logged out.", "success")
+    return redirect(url_for("login"))
+
 # Logs Route
 @app.route("/logs")
 def logs():
@@ -422,6 +459,9 @@ def logs():
 
 @app.route("/visitor_logs")
 def visitor_logs():
+    if not session.get("admin_authenticated"):  # Protect logs page
+        return redirect(url_for("admin_login"))
+
     visitors = Visitor.query.all()
     return render_template("visitor_logs.html", visitors=visitors)
 
