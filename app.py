@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
 import requests
 import os
 from datetime import datetime
@@ -19,7 +19,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 # Configure upload folders
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static/uploads")
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 QR_FOLDER = os.path.join(os.path.dirname(__file__), "static/qrcodes")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(QR_FOLDER, exist_ok=True)
@@ -221,7 +221,8 @@ def index():
         photo_path = None
         if photo and allowed_file(photo.filename):
             filename = secure_filename(photo.filename)
-            photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            photo_path = filename  # Store only 'filename.jpg'
+            full_photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)  # Full path for saving the file
             photo.save(photo_path)
 
          # 🔥 Assign an available badge
@@ -407,6 +408,10 @@ def visitor_checkout(visitor_id):
         flash("Visitor not found.", "danger")
 
     return redirect(url_for("visitor_logs"))
+
+@app.route("/uploads/<filename>")
+def uploaded_file(filename):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 # Logs Route
 @app.route("/logs")

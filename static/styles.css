@@ -205,3 +205,12 @@ header {
     display: block;
     margin: 0 auto;
 }
+
+.visitor-photo {
+    width: 50px; /* Adjust as needed */
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%; /* Optional: Makes the image circular */
+    border: 1px solid #ccc;
+}
+

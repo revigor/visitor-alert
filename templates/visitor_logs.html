@@ -18,6 +18,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>Photo</th>
                     <th>Name</th>
                     <th>Company</th>
                     <th>Purpose</th>
@@ -32,6 +33,13 @@
             <tbody>
                 {% for visitor in visitors %}
                 <tr>
+                    <td>
+                        {% if visitor.photo_path %}
+                        <img src="{{ url_for('uploaded_file', filename=visitor.photo_path) }}" alt="Visitor Photo" class="visitor-photo">
+                        {% else %}
+                            <span>No Photo</span>
+                        {% endif %}
+                    </td>
                     <td>{{ visitor.name }}</td>
                     <td>{{ visitor.company_name }}</td>
                     <td>{{ visitor.purpose }}</td>
@@ -52,6 +60,7 @@
                 </tr>
                 {% endfor %}
             </tbody>
+            
         </table>
         
         <a href="/">Back to Visitor Check-In</a>
