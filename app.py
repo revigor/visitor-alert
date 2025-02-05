@@ -32,7 +32,7 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 # SMTP2Go API Parameters
 SMTP2GO_API_URL = "https://api.smtp2go.com/v3/email/send"
 SMTP2GO_API_KEY = "api-43E83469CC704967918416A4701A050C"  # Replace with your SMTP2Go API key
-SENDER_EMAIL = 'jorge.prado@royalexpressinc.com'
+SENDER_EMAIL = 'receptionist@royalexpressinc.com'
 DEFAULT_DEPARTMENT_EMAIL = 'hr_TEST_@royalexpressinc.com'  # Default HR email
 
 # Allowed file extensions
@@ -230,7 +230,7 @@ def index():
             filename = secure_filename(photo.filename)
             photo_path = filename  # Store only 'filename.jpg'
             full_photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)  # Full path for saving the file
-            photo.save(photo_path)
+            photo.save(full_photo_path)
 
          # 🔥 Assign an available badge
         badge_number = get_available_badge()
