@@ -165,7 +165,7 @@ def send_driver_checkout_email(recipient_email, driver_name, provider_name, chec
 
 def get_available_badge():
     assigned_badges = [visitor.badge_number for visitor in Visitor.query.filter(Visitor.badge_number.isnot(None)).all()]
-    for badge in range(1, 6):  # Checking badges 1-5
+    for badge in range(5, 10):  # Checking badges 1-5
         if badge not in assigned_badges:
             return badge
     return None  # No available badge
