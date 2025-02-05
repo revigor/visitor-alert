@@ -177,7 +177,8 @@ def get_personnel():
     department = request.args.get("department")
     personnel = {
         "HR": [
-            {"name": "Alice Johnson", "email": "hr@royalexpressinc.com"}
+            {"name": "Patricia Rodriguez", "email": "patricia.rodriguez@royalexpressinc.com"},
+            {"name": "Cristal Sanchez", "email": "hr.assistant@royalexpressinc.com"}
         ],
         "IT": [
             {"name": "Ivan Ramirez", "email": "ivan.ramirez@royalexpressinc.com"},
@@ -206,6 +207,9 @@ def get_personnel():
         "Shop": [
             {"name": "Oscar Garcia", "email": "ogarcia@royalexpressinc.com"},
             {"name": "Mariam Treviño", "email": "mariamt@royalexpressinc.com"}
+        ],
+        "Operaciones": [
+            {"name": "Joe Varela", "email": "jvarela@royalexpressinc.com"}
         ]
     }
     return jsonify(personnel.get(department, []))
