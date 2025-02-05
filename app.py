@@ -212,8 +212,11 @@ def get_personnel():
             {"name": "Oscar Garcia", "email": "ogarcia@royalexpressinc.com"},
             {"name": "Mariam Treviño", "email": "mariamt@royalexpressinc.com"}
         ],
-        "Operaciones": [
+        "Operations": [
             {"name": "Joe Varela", "email": "jvarela@royalexpressinc.com"}
+        ],
+        "Process": [
+            {"name": "Maritza Canales", "email": "maritza.canales@royalexpressinc.com"}
         ]
     }
     return jsonify(personnel.get(department, []))
