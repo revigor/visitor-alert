@@ -69,10 +69,14 @@ def allowed_file(filename):
 
 def send_email(recipient_email, visitor_name, company_name, purpose, department):
     try:
+        # List of CC recipients
+        cc_recipients = ["patricia.rodriguez@royalexpressinc.com", "hr.assistant@royalexpressinc.com"]
+
         # Prepare email data
         email_data = {
             "api_key": SMTP2GO_API_KEY,
             "to": [recipient_email],
+            "cc": cc_recipients,  # Add CC recipients
             "sender": SENDER_EMAIL,
             "subject": f"Visitor Notification - {visitor_name}",
             "text_body": (
