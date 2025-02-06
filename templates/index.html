@@ -23,7 +23,7 @@
             {% if messages %}
                 <ul>
                     {% for category, message in messages %}
-                        <li class="flash-messages {{ category }}">{{ message }}</li>
+                    <li class="flash-messages {{ category }}">{% autoescape false %}{{ message }}{% endautoescape %}</li>
                     {% endfor %}
                 </ul>
             {% endif %}

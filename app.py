@@ -274,7 +274,7 @@ def index():
 )
         if email_sent:
             flash(f"Visitor {visitor_name} checked in successfully!", "success")
-            flash(f"Assigned Visitor Badge: {badge_number}", "info")  # Show badge assignment
+            flash(f'<span class="badge-number">Assigned Visitor Badge: {badge_number}</span>', "success")  # Show badge assignment
         else:
             flash("Failed to send notification email. Please check the system settings.", "danger")
 

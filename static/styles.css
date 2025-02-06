@@ -214,3 +214,11 @@ header {
     border: 1px solid #ccc;
 }
 
+.badge-number {
+    font-size: 24px;  /* Make text larger */
+    font-weight: bold;  /* Make it bold */
+    color: #007bff;  /* Blue color */
+    display: block;  /* Ensures it appears on its own line */
+    margin-top: 10px;  /* Add space above it */
+}
+
