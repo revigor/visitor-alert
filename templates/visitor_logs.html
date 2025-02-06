@@ -29,7 +29,6 @@
                     <th>Badge Number</th>
                     <th>Check-In Time</th>
                     <th>Check-Out Time</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -50,15 +49,6 @@
                     <td>{{ visitor.badge_number if visitor.badge_number else 'N/A' }}</td>
                     <td>{{ visitor.check_in_time }}</td>
                     <td>{{ visitor.check_out_time if visitor.check_out_time else 'Still Checked In' }}</td>
-                    <td>
-                        {% if not visitor.check_out_time %}
-                            <form method="POST" action="{{ url_for('visitor_checkout', visitor_id=visitor.id) }}" style="display:inline;">
-                                <button type="submit" class="checkout-button">Check Out</button>
-                            </form>
-                        {% else %}
-                            <span class="checked-out">Checked Out</span>
-                        {% endif %}
-                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

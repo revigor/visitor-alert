@@ -279,7 +279,11 @@ def index():
             flash("Failed to send notification email. Please check the system settings.", "danger")
 
         return redirect(url_for("index"))
-    return render_template("index.html")
+    
+    # Fetch only visitors that are still checked in
+    visitors = Visitor.query.filter(Visitor.check_out_time.is_(None)).all()
+
+    return render_template("index.html", visitors=visitors)
 
 # Driver Management Route
 @app.route("/drivers", methods=["GET", "POST"])
@@ -425,7 +429,7 @@ def visitor_checkout(visitor_id):
     else:
         flash("Visitor not found.", "danger")
 
-    return redirect(url_for("visitor_logs"))
+    return redirect(url_for("index"))
 
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):

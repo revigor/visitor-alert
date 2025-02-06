@@ -74,6 +74,31 @@
             <button id="submit-button" type="submit" style="display: none;">Submit</button>
         </form>
 
+        <h2>Visitors Currently Checked In</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for visitor in visitors %}
+            {% if not visitor.check_out_time %}
+            <tr>
+                <td>{{ visitor.name }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('visitor_checkout', visitor_id=visitor.id) }}">
+                        <button type="submit" class="checkout-button">Check Out</button>
+                    </form>
+                </td>
+            </tr>
+            {% endif %}
+        {% endfor %}
+    </tbody>
+</table>
+
+
         <script>
             const photoInput = document.getElementById("photo");
             const photoButton = document.getElementById("photo-button");
