@@ -193,6 +193,8 @@ def get_personnel():
             {"name": "Lesly Espinoza", "email": "carriersmx@royalexpressinc.com"},
             {"name": "David Mata", "email": "accounting1@royalexpressinc.com"},
             {"name": "Saul Alcorta", "email": "salcorta@royalexpressinc.com"},
+            {"name": "Janett Vargas", "email": "janett.vargas@thegymlegacy.com"},
+            {"name": "Erika lopez", "email": "erika.lopez@royalexpressinc.com"},
             {"name": "Karen Maldonado", "email": "kmaldonado@royalexpressinc.com"}
         ],
         "Settlements": [
